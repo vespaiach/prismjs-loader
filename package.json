@@ -10,14 +10,18 @@
     "type": "git",
     "url": "git+https://github.com/vespaiach/prismjs-loader.git"
   },
-  "license": "ISC",
-  "author": "",
+  "license": "MIT",
+  "author": "Trinh Nguyen <nta.toan@gmail.com>",
   "type": "commonjs",
   "main": "prismjs-loader.js",
   "scripts": {
-    "test": "http-server"
+    "test": "http-server",
+    "build": "node build.js"
   },
   "dependencies": {
     "http-server": "^14.1.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.1"
   }
 }
