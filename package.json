@@ -1,0 +1,23 @@
+{
+  "name": "prismjs-loader",
+  "version": "1.0.0",
+  "description": "This script provides a fast and efficient way to integrate Prism.js syntax highlighting into web pages.",
+  "homepage": "https://github.com/vespaiach/prismjs-loader#readme",
+  "bugs": {
+    "url": "https://github.com/vespaiach/prismjs-loader/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vespaiach/prismjs-loader.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "prismjs-loader.js",
+  "scripts": {
+    "test": "http-server"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}

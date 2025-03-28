@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PrismJS Loader</title>
+  </head>
+  <body>
+    <h1>Highlight JSX with default theme</h1>
+    <pre><code class="language-jsx">
+			/**
+			* Example: Encapsulating integration logic into a custom hook
+			**/
+		 const API_URL = &#39;/api-url&#39;;
+		 
+		 export function useTrackAppActivity() {
+			 return useCallback((activity: string) =&gt; {
+				 try {
+					 if (navigator.sendBeacon !== undefined &amp;&amp; navigator.sendBeacon(API_URL, activity)) return;
+					 void fetch(API_URL, { method: &#39;POST&#39;, keepalive: true });
+				 } catch (error) {
+					 // Notify error tracking service or handle the error as needed
+					 console.error(error);
+				 }
+			 }, []);
+		 }
+		 </code></pre>
+
+    <script src="../prismjs-loader.js" defer></script>
+  </body>
+</html>
