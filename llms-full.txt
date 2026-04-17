@@ -1,0 +1,677 @@
+# shiki-loader
+
+> A drop-in, framework-agnostic browser script that automatically syntax-highlights `<pre><code>` blocks using Shiki. It bundles into a single self-contained JS file with embedded CSS, loads Shiki from esm.sh at runtime, and adds language labels and copy-to-clipboard buttons to every code block. Configured entirely via URL query parameters on the script tag.
+
+The loader is browser-only with zero Node.js dependencies. Shiki is imported from esm.sh at runtime, not bundled. CSS is inlined into the JS bundle at build time via a placeholder replacement step. A single-run guard prevents duplicate highlighting if the script is injected multiple times.
+
+The repository contains two parts: the standalone loader (`src/shiki-loader/`) and a Next.js demo app (`src/app/`) deployed to GitHub Pages.
+
+## Getting Started
+
+<doc title="README" path="./README.md">
+# shiki-loader
+
+[![Deploy to GitHub Pages](https://github.com/vespaiach/shiki-loader/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/vespaiach/shiki-loader/actions/workflows/deploy-pages.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Shiki](https://img.shields.io/badge/Powered%20by-Shiki-ff69b4)](https://shiki.style/)
+
+A drop-in browser script that automatically syntax-highlights `<pre><code>` blocks using [Shiki](https://shiki.style/). Zero dependencies, zero build steps for consumers, framework-agnostic.
+
+**[Live Demo](https://vespaiach.github.io/shiki-loader/)**
+
+## Features
+
+- Automatic detection and highlighting of all `<pre><code>` blocks on the page
+- 60+ bundled themes with automatic dark mode support via `prefers-color-scheme`
+- All [Shiki bundled languages](https://shiki.style/languages) supported out of the box
+- Language label and copy-to-clipboard button on every code block
+- Self-contained single script — CSS is embedded, Shiki is loaded from [esm.sh](https://esm.sh/) at runtime
+- Works with any static site, CMS, blog, or HTML page
+
+## Quick Start
+
+Add a single `<script>` tag to your HTML:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/vespaiach/shiki-loader@main/public/shiki-loader.js" defer></script>
+```
+
+That's it. All code blocks with a language class will be highlighted on page load.
+
+### Specify Themes
+
+```html
+<!-- Single theme -->
+<script src="https://cdn.jsdelivr.net/gh/vespaiach/shiki-loader@main/public/shiki-loader.js?theme=github-dark" defer></script>
+
+<!-- Light and dark mode themes -->
+<script
+  src="https://cdn.jsdelivr.net/gh/vespaiach/shiki-loader@main/public/shiki-loader.js?theme=github-light&dark-theme=github-dark"
+  defer
+></script>
+```
+
+### Code Block Format
+
+The loader highlights any `<code>` element inside a `<pre>` that has a `language-*` or `lang-*` class:
+
+```html
+<pre><code class="language-typescript">
+const greeting: string = 'Hello, world!';
+console.log(greeting);
+</code></pre>
+```
+
+## Configuration
+
+The loader is configured entirely via URL query parameters on the script `src`.
+
+| Parameter    | Values                       | Default          | Description                                      |
+| ------------ | ---------------------------- | ---------------- | ------------------------------------------------ |
+| `theme`      | Any bundled Shiki theme name | `material-theme` | Theme used in light mode (and dark if no dark-theme) |
+| `dark-theme` | Any bundled Shiki theme name | _(none)_         | Theme used when system prefers dark mode         |
+
+Dark mode is detected automatically via `prefers-color-scheme: dark`. When `dark-theme` is set and the system is in dark mode, that theme is used; otherwise `theme` applies.
+
+### Supported Themes
+
+Popular themes include:
+
+| Light                       | Dark                         |
+| --------------------------- | ---------------------------- |
+| `github-light`              | `github-dark`                |
+| `one-light`                 | `one-dark-pro`               |
+| `catppuccin-latte`          | `catppuccin-mocha`           |
+| `material-theme-lighter`    | `material-theme-darker`      |
+| `rose-pine-dawn`            | `rose-pine`                  |
+| `solarized-light`           | `solarized-dark`             |
+| `everforest-light`          | `everforest-dark`            |
+| `min-light`                 | `nord`                       |
+
+See [src/shiki-loader/themes.ts](src/shiki-loader/themes.ts) for the full list of 60+ themes.
+
+## Self-Hosting
+
+Build the loader locally and serve `shiki-loader.js` from your own domain:
+
+```bash
+git clone https://github.com/vespaiach/shiki-loader.git
+cd shiki-loader
+bun install
+bun run build:lib
+```
+
+The output file is `public/shiki-loader.js`. Copy it to your project's static assets and reference it in your HTML:
+
+```html
+<script src="/assets/shiki-loader.js?theme=dracula" defer></script>
+```
+
+## How It Works
+
+1. On DOM ready, the script reads `theme` and `dark-theme` from its own URL parameters
+2. Detects system color scheme preference
+3. Finds all `<pre><code>` elements with a `language-*` or `lang-*` class
+4. Highlights each block using Shiki (loaded from esm.sh at runtime)
+5. Wraps each block with a language label and copy-to-clipboard button
+6. Injects embedded CSS for styling
+
+The script includes a single-run guard — it is safe to inject multiple times and will only highlight once.
+
+## Development
+
+### Prerequisites
+
+- [Bun](https://bun.sh/) 1.0+
+
+### Setup
+
+```bash
+bun install
+bun run type-check    # Verify TypeScript setup
+bun run build:lib     # Build the loader
+```
+
+### Scripts
+
+| Command             | Purpose                                                |
+| ------------------- | ------------------------------------------------------ |
+| `bun run dev`       | Start Next.js dev server at localhost:3000              |
+| `bun run build:lib` | Build standalone loader to `public/shiki-loader.js`    |
+| `bun run build`     | Build Next.js static site                              |
+| `bun run start`     | Run production server                                  |
+| `bun run lint`      | Lint with Biome                                        |
+| `bun run format`    | Format with Biome                                      |
+| `bun run type-check`| TypeScript type-check (no emit)                        |
+| `bun test`          | Run tests                                              |
+
+### Project Structure
+
+```
+src/
+├── shiki-loader/          # The standalone loader (framework-agnostic)
+│   ├── index.ts           # Entry point — DOM detection and highlighting
+│   ├── transformer.ts     # Wraps highlighted blocks with UI (label + copy button)
+│   ├── utils.ts           # URL param parsing, CSS injection, clipboard handling
+│   ├── loader.css         # Styles embedded into the bundle at build time
+│   └── themes.ts          # List of supported Shiki themes
+├── app/                   # Next.js demo app
+│   ├── layout.tsx         # Root layout (Tailwind + DaisyUI)
+│   ├── page.tsx           # Home page
+│   ├── about/page.tsx     # About page
+│   └── _components/       # Demo-specific components
+└── components/            # Shared UI components (Select, icons)
+```
+
+### Build Pipeline
+
+`bun run build:lib` does:
+1. Bundles `src/shiki-loader/index.ts` with Bun (`--target browser --bundle --minify`)
+2. Runs `scripts/embed-loader-css.ts` to inline `loader.css` into the JS bundle
+3. Outputs final self-contained script to `public/shiki-loader.js`
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Run checks before committing:
+   ```bash
+   bun run lint
+   bun run type-check
+   bun run build:lib
+   bun run build
+   ```
+4. Open a pull request
+
+## License
+
+[MIT](LICENSE) - Trinh Nguyen
+</doc>
+
+## Loader Architecture
+
+<doc title="Entry Point — index.ts" path="./src/shiki-loader/index.ts">
+// @ts-expect-error for simplicity, we can ignore type errors in this loader since it's meant to be used as a standalone script
+import { bundledLanguages, codeToHtml } from "https://esm.sh/shiki@3.0.0";
+import createShikiLoaderTransformer from "./transformer";
+import { generateStyles, handleCopyButtonClick, readSearchParams } from "./utils";
+
+const languages = new Set(Object.keys(bundledLanguages));
+let hasRun = false;
+
+async function highlight() {
+  if (hasRun) return;
+  hasRun = true;
+
+  document.head.appendChild(generateStyles());
+
+  const { theme, darkTheme } = readSearchParams();
+  const codeBlocks = document.querySelectorAll("pre code");
+  const isDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+  const activeTheme = (isDarkMode && darkTheme) || theme;
+
+  const highlightTasks = Array.from(codeBlocks).map(async (codeBlock) => {
+    const element = codeBlock as HTMLElement;
+    const parent = element.parentElement;
+    if (!parent) return;
+
+    // Extract language from class (e.g., language-js)
+    const classNames = Array.from(element.classList);
+    const langClass = classNames.find((c) => c.startsWith("language-") || c.startsWith("lang-"));
+
+    let lang = "unknown";
+    if (langClass) {
+      if (langClass.startsWith("language-")) {
+        lang = langClass.replace("language-", "");
+      } else if (langClass.startsWith("lang-")) {
+        lang = langClass.replace("lang-", "");
+      }
+    }
+
+    if (lang === "unknown" || !languages.has(lang)) {
+      console.warn("Unsupported or unknown language:", lang);
+      return;
+    }
+
+    try {
+      const code = element.textContent || "";
+      const html = await codeToHtml(code, {
+        lang,
+        theme: activeTheme || "material-theme",
+        transformers: [createShikiLoaderTransformer(lang)],
+      });
+
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = html;
+      const newPre = tempDiv.firstElementChild as HTMLElement | null;
+
+      if (newPre) {
+        newPre.classList.add(langClass || `language-${lang}`);
+        parent.replaceWith(newPre);
+      }
+    } catch (err) {
+      console.error(`Failed to highlight code block with language "${lang}":`, err);
+    }
+  });
+
+  await Promise.allSettled(highlightTasks);
+
+  // Attach event listener for copy buttons
+  document.querySelectorAll("button[data-target='copy']").forEach((b) => {
+    const button = b as HTMLButtonElement;
+    button.addEventListener("click", handleCopyButtonClick);
+  });
+}
+
+// Side effect to automatically highlight on load
+// Works both for scripts present at initial load and for
+// scripts injected dynamically after DOMContentLoaded.
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    void highlight();
+  });
+} else {
+  void highlight();
+}
+</doc>
+
+<doc title="Transformer — transformer.ts" path="./src/shiki-loader/transformer.ts">
+export default function createShikiLoaderTransformer(lang: string) {
+  return {
+    // biome-ignore lint/suspicious/noExplicitAny: for simplicity, we can ignore type errors in this loader since it's meant to be used as a standalone script
+    pre(node: any) {
+      return {
+        type: "element",
+        tagName: "div",
+        properties: {
+          class: `${node.properties?.class || ""} shiki-loader-mockup-code`.trim(),
+          style: `${node.properties?.style || ""}`.trim(),
+        },
+        children: [
+          {
+            type: "element",
+            tagName: "div",
+            properties: {
+              class: "shiki-loader-language-label",
+            },
+            children: [
+              {
+                type: "text",
+                value: lang,
+              },
+            ],
+          },
+          {
+            type: "element",
+            tagName: "div",
+            properties: {
+              class: "shiki-loader-tooltip",
+              "data-tip": "Copy",
+            },
+            children: [
+              {
+                type: "element",
+                tagName: "button",
+                properties: {
+                  type: "button",
+                  class: "shiki-loader-copy-button",
+                  "data-target": "copy",
+                },
+                children: [
+                  {
+                    type: "element",
+                    tagName: "svg",
+                    properties: {
+                      xmlns: "http://www.w3.org/2000/svg",
+                      viewBox: "0 0 20 20",
+                      width: "16",
+                      height: "16",
+                    },
+                    children: [
+                      {
+                        type: "element",
+                        tagName: "path",
+                        properties: {
+                          fill: "currentColor",
+                          d: "M6.64402323,2.98337365 ...(clipboard icon SVG path)",
+                        },
+                        children: [],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          node,
+        ],
+      };
+    },
+  };
+}
+</doc>
+
+<doc title="Utilities — utils.ts" path="./src/shiki-loader/utils.ts">
+// @ts-expect-error for simplicity, we can ignore type errors in this loader since it's meant to be used as a standalone script
+import { bundledThemes } from "https://esm.sh/shiki@3.0.0";
+
+export interface LoaderInputs {
+  theme: string;
+  darkTheme?: string;
+}
+
+const LOADER_CSS = "/* LOADER_CSS placeholder - this will be replaced with the contents of loader.css */";
+const themes = new Set(Object.keys(bundledThemes));
+
+export function generateStyles() {
+  const style = document.createElement("style");
+  style.textContent = LOADER_CSS;
+  return style;
+}
+
+export function readSearchParams(): LoaderInputs {
+  let scriptElement = document.currentScript as HTMLScriptElement;
+
+  // Fallback for dynamically added scripts where currentScript might be null
+  if (!scriptElement || scriptElement.nodeName !== "SCRIPT") {
+    const scripts = document.getElementsByTagName("script");
+    for (let i = scripts.length - 1; i >= 0; i--) {
+      const s = scripts[i];
+      if (s.src && (s.src.includes("shiki-loader.js") || s.src.includes("index.ts"))) {
+        scriptElement = s;
+        break;
+      }
+    }
+  }
+
+  // Default configuration
+  const config: LoaderInputs = { theme: "material-theme" };
+
+  // Parse URL parameters if script element is available
+  if (scriptElement?.src) {
+    try {
+      const url = new URL(scriptElement.src);
+
+      const themeParam = url.searchParams.get("theme") ?? "";
+      if (themeParam && themes.has(themeParam)) {
+        config.theme = themeParam;
+      }
+
+      const darkThemeParam = url.searchParams.get("dark-theme") ?? "";
+      if (darkThemeParam && themes.has(darkThemeParam)) {
+        config.darkTheme = darkThemeParam;
+      }
+    } catch (error) {
+      console.error("Failed to parse script URL:", error);
+      return config;
+    }
+  }
+
+  return config;
+}
+
+const tooltipResetTimers = new WeakMap<HTMLElement, number>();
+
+export async function handleCopyButtonClick(event: MouseEvent) {
+  const button = event.currentTarget as HTMLButtonElement | null;
+  if (!button) return;
+
+  const tooltip = button.closest(".shiki-loader-tooltip") as HTMLElement | null;
+  const container = button.closest(".shiki-loader-mockup-code") as HTMLElement | null;
+
+  if (!container) return;
+
+  const codeElement = container.querySelector("pre code") as HTMLElement | null;
+  const code = codeElement?.textContent ?? "";
+
+  if (!code) return;
+
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(code);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = code;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        document.execCommand("copy");
+      } finally {
+        document.body.removeChild(textarea);
+      }
+    }
+  } catch (err) {
+    console.error("Failed to copy code to clipboard:", err);
+  }
+
+  if (!tooltip) return;
+
+  const previousTimeout = tooltipResetTimers.get(tooltip);
+  if (previousTimeout !== undefined) {
+    window.clearTimeout(previousTimeout);
+  }
+
+  tooltip.setAttribute("data-tip", "Copied");
+
+  const timeoutId = window.setTimeout(() => {
+    tooltip.setAttribute("data-tip", "Copy");
+    tooltipResetTimers.delete(tooltip);
+  }, 2000);
+
+  tooltipResetTimers.set(tooltip, timeoutId);
+}
+</doc>
+
+<doc title="Themes — themes.ts" path="./src/shiki-loader/themes.ts">
+export const SHIKI_THEMES: readonly string[] = [
+  "andromeeda", "aurora-x", "ayu-dark", "ayu-light", "ayu-mirage",
+  "catppuccin-frappe", "catppuccin-latte", "catppuccin-macchiato", "catppuccin-mocha",
+  "dark-plus", "dracula", "dracula-soft",
+  "everforest-dark", "everforest-light",
+  "github-dark", "github-dark-default", "github-dark-dimmed", "github-dark-high-contrast",
+  "github-light", "github-light-default", "github-light-high-contrast",
+  "gruvbox-dark-hard", "gruvbox-dark-medium", "gruvbox-dark-soft",
+  "gruvbox-light-hard", "gruvbox-light-medium", "gruvbox-light-soft",
+  "horizon", "houston",
+  "kanagawa-dragon", "kanagawa-lotus", "kanagawa-wave",
+  "laserwave", "light-plus",
+  "material-theme", "material-theme-darker", "material-theme-lighter",
+  "material-theme-ocean", "material-theme-palenight",
+  "min-dark", "min-light", "monokai",
+  "night-owl", "night-owl-light", "nord",
+  "one-dark-pro", "one-light",
+  "plastic", "poimandres", "red",
+  "rose-pine", "rose-pine-dawn", "rose-pine-moon",
+  "slack-dark", "slack-ochin", "snazzy-light",
+  "solarized-dark", "solarized-light", "synthwave-84",
+  "tokyo-night", "vesper",
+  "vitesse-black", "vitesse-dark", "vitesse-light",
+] as const;
+</doc>
+
+<doc title="Loader CSS — loader.css" path="./src/shiki-loader/loader.css">
+.shiki-loader-mockup-code {
+  border-radius: 0.5rem;
+  direction: ltr;
+  padding-block: 1.25rem;
+  font-size: 0.875rem;
+  position: relative;
+  overflow: visible;
+}
+.shiki-loader-mockup-code:before {
+  content: "";
+  opacity: 0.3;
+  border-radius: 3.40282e38px;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-bottom: 1rem;
+  display: block;
+  box-shadow:
+    1.4em 0,
+    2.8em 0,
+    4.2em 0;
+}
+.shiki-loader-mockup-code pre {
+  padding-right: 1.25rem;
+  padding-left: 2ch;
+  overflow: auto;
+  white-space: pre-wrap;
+  display: inline-block;
+}
+.shiki-loader-tooltip {
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  --tt-off: calc(100% + 0.5rem);
+  --tt-tail: calc(100% + 1px + 0.25rem);
+  --tw-content: attr(data-tip);
+}
+.shiki-loader-copy-button {
+  cursor: pointer;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shiki-loader-tooltip:hover::before {
+  opacity: 1;
+  --tt-pos: 0rem;
+}
+.shiki-loader-tooltip::before {
+  border-radius: 0.25rem;
+  text-align: center;
+  white-space: normal;
+  max-width: 20rem;
+  opacity: 0;
+  color: oklch(92% 0.004 286.32);
+  background-color: oklch(14% 0.005 285.823);
+  pointer-events: none;
+  z-index: 2;
+  content: var(--tw-content);
+  width: max-content;
+  padding-block: 0.25rem;
+  padding-inline: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  position: absolute;
+  transform: translate(calc(var(--tt-pos, 0.25rem) - 0.25rem)) translateY(-50%);
+  inset: 50% var(--tt-off) auto auto;
+}
+.shiki-loader-language-label {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 1.05rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+</doc>
+
+## Development
+
+<doc title="CLAUDE.md — Development Guide" path="./CLAUDE.md">
+## Build & Development Workflow
+
+### Building the Loader
+
+Command: `bun run build:lib`
+
+This:
+1. Bundles `src/shiki-loader/index.ts` with Bun (`--target browser --bundle --minify`)
+2. Runs `scripts/embed-loader-css.ts`, which inlines `loader.css` into the JS bundle via a placeholder in `utils.ts`
+3. Outputs the final script to `public/shiki-loader.js`
+
+The loader script is entirely self-contained: no external CSS files, no external dependencies (Shiki is imported from esm.sh at runtime).
+
+### Running the Demo App Locally
+
+`bun run dev` — Next.js app runs at localhost:3000.
+
+### Static Build for GitHub Pages
+
+`bun run build` then `bun run start` — exports to static HTML with `basePath` and `assetPrefix` set for `/shiki-loader/` on GitHub Pages.
+
+### Pre-Merge Checklist
+
+```bash
+bun run lint          # Check for style/lint violations
+bun run type-check    # Verify TypeScript compiles
+bun run build:lib     # Build the loader
+bun run build         # Build the demo app
+bun run test          # Run all tests (if any exist)
+```
+
+## Key Development Guidelines
+
+- Keep the loader framework-agnostic — no React/Next.js imports in `src/shiki-loader/`
+- Browser-only: guard `document`, `window`, `navigator.clipboard` access
+- Single-run guard (`hasRun`) prevents duplicate processing
+- CSS is embedded; no external stylesheets
+- Edit `loader.css` directly, then `bun run build:lib` to embed
+- New URL parameters go in `readSearchParams()` in `utils.ts`
+- TypeScript target is ES2017 for broad browser compatibility
+- Biome enforces 2-space indent, 110-char line width, single quotes
+</doc>
+
+## Optional
+
+<doc title="Copilot Instructions" path="./.github/copilot-instructions.md">
+# Copilot Instructions for shiki-loader
+
+## Project Overview
+
+This repo contains:
+
+- A **browser-only Shiki loader** in src/shiki-loader that can be built into a single script (public/shiki-loader.js) and dropped into any HTML page.
+- A **Next.js demo app** (app directory) used to showcase and manually test the loader and its themes.
+
+All logic is client-side; there is no Node runtime dependency for the loader itself.
+
+## Shiki Loader Architecture
+
+- Entry point: src/shiki-loader/index.ts — Imports Shiki from esm.sh, auto-runs once on DOM ready, finds `pre code` blocks, and replaces them with highlighted HTML.
+- Transformer: src/shiki-loader/transformer.ts — Wraps each Shiki `<pre>` in a container with language label and copy-to-clipboard button.
+- Utilities: src/shiki-loader/utils.ts — `readSearchParams()` reads theme params, `generateStyles()` injects CSS, `handleCopyButtonClick()` implements clipboard copying.
+- Themes: src/shiki-loader/themes.ts — Source of truth for supported Shiki theme names.
+
+## Language Detection
+
+- Languages from Shiki `bundledLanguages` via `Object.keys(bundledLanguages)`.
+- Accepts `language-xxx` or `lang-xxx` classes on code elements.
+- Unknown/unsupported languages log warning and skip.
+
+## Theme Selection & Dark Mode
+
+- `readSearchParams()` returns `{ theme, darkTheme }` with default `theme = "material-theme"`.
+- Runtime checks `window.matchMedia('(prefers-color-scheme: dark)')`.
+- Dark mode + darkTheme set → use darkTheme. Otherwise → use theme.
+- Unknown values fall back to `material-theme`.
+
+## Build & Development
+
+- Loader build: `bun run build:lib` — bundles, minifies, embeds CSS via placeholder.
+- Dev server: `bun run dev`
+- Lint: `bun run lint` (Biome), Format: `bun run format`, Type-check: `bun run type-check`
+
+## Implementation Guidelines
+
+- Keep loader framework-agnostic — no React/Next imports in src/shiki-loader.
+- Browser-only: guard document/window/navigator.clipboard access.
+- Edit loader.css for styles, rely on embed script to inline.
+- New themes: verify Shiki supports it, update themes.ts.
+- New config: add URL parameters in readSearchParams(), keep backward-compatible.
+</doc>

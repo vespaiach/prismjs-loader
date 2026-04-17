@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "wiki-llms-txt",
+  "owner": "microsoft",
+  "repo": "skills",
+  "path": ".github/plugins/deep-wiki/skills/wiki-llms-txt",
+  "branch": "main",
+  "sha": "b3a045c0f510f263fc05abba5daccaab4efcf164",
+  "source": "manual"
+}

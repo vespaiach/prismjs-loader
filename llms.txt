@@ -1,0 +1,33 @@
+# shiki-loader
+
+> A drop-in, framework-agnostic browser script that automatically syntax-highlights `<pre><code>` blocks using Shiki. It bundles into a single self-contained JS file with embedded CSS, loads Shiki from esm.sh at runtime, and adds language labels and copy-to-clipboard buttons to every code block. Configured entirely via URL query parameters on the script tag.
+
+The loader is browser-only with zero Node.js dependencies. Shiki is imported from esm.sh at runtime, not bundled. CSS is inlined into the JS bundle at build time via a placeholder replacement step. A single-run guard prevents duplicate highlighting if the script is injected multiple times.
+
+The repository contains two parts: the standalone loader (`src/shiki-loader/`) and a Next.js demo app (`src/app/`) deployed to GitHub Pages.
+
+## Getting Started
+
+- [README](./README.md): Quick start with CDN script tag, theme configuration via URL params, self-hosting build instructions, and project structure overview
+
+## Loader Architecture
+
+- [Entry Point — index.ts](./src/shiki-loader/index.ts): DOM-ready hook that reads theme params, detects dark mode via `prefers-color-scheme`, finds code blocks, highlights with Shiki, and attaches copy button listeners
+- [Transformer — transformer.ts](./src/shiki-loader/transformer.ts): Shiki transformer that wraps each `<pre>` in a container div with language label and copy-to-clipboard button using HAST nodes
+- [Utilities — utils.ts](./src/shiki-loader/utils.ts): Script URL param parsing (`readSearchParams`), CSS style injection (`generateStyles`), and clipboard copy with tooltip reset (`handleCopyButtonClick`)
+- [Themes — themes.ts](./src/shiki-loader/themes.ts): Readonly array of 60+ supported Shiki theme names used for validation
+- [Loader CSS — loader.css](./src/shiki-loader/loader.css): Styles for the code block wrapper, language label, and copy button — embedded into JS at build time
+
+## Configuration
+
+- [Theme Selection](./README.md): URL params `theme` (light/default) and `dark-theme` (dark mode) on script src; defaults to `material-theme`; unknown themes fall back to default
+- [Language Detection](./README.md): Recognizes `language-*` or `lang-*` CSS classes on `<code>` elements; validates against Shiki's `bundledLanguages`
+
+## Development
+
+- [CLAUDE.md](./CLAUDE.md): Full development guide covering build pipeline (`bun run build:lib`), CSS embedding process, pre-merge checklist, and contribution guidelines
+
+## Optional
+
+- [Demo App](./src/app/): Next.js static site showcasing the loader with theme selector, deployed to GitHub Pages
+- [Copilot Instructions](./.github/copilot-instructions.md): AI assistant guidelines for working with this codebase
