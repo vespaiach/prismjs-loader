@@ -1,6 +1,7 @@
 {
   "name": "shiki-loader",
-  "version": "0.1.0",
+  "description": "Browser-only syntax highlighting for code blocks using Shiki",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
