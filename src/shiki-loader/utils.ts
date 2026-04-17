@@ -58,7 +58,7 @@ export function readSearchParams(): LoaderInputs {
 
 const tooltipResetTimers = new WeakMap<HTMLElement, number>();
 
-export function handleCopyButtonClick(event: MouseEvent) {
+export async function handleCopyButtonClick(event: MouseEvent) {
   const button = event.currentTarget as HTMLButtonElement | null;
   if (!button) return;
 
@@ -74,7 +74,7 @@ export function handleCopyButtonClick(event: MouseEvent) {
 
   try {
     if (navigator.clipboard?.writeText) {
-      void navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(code);
     } else {
       const textarea = document.createElement("textarea");
       textarea.value = code;
@@ -95,8 +95,6 @@ export function handleCopyButtonClick(event: MouseEvent) {
 
   if (!tooltip) return;
 
-  const originalText = tooltip.getAttribute("data-tip") || "Copy";
-
   const previousTimeout = tooltipResetTimers.get(tooltip);
   if (previousTimeout !== undefined) {
     window.clearTimeout(previousTimeout);
@@ -105,7 +103,7 @@ export function handleCopyButtonClick(event: MouseEvent) {
   tooltip.setAttribute("data-tip", "Copied");
 
   const timeoutId = window.setTimeout(() => {
-    tooltip.setAttribute("data-tip", originalText);
+    tooltip.setAttribute("data-tip", "Copy");
     tooltipResetTimers.delete(tooltip);
   }, 2000);
 

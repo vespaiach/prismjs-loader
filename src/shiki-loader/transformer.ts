@@ -2,13 +2,12 @@ export default function createShikiLoaderTransformer(lang: string) {
   return {
     // biome-ignore lint/suspicious/noExplicitAny: for simplicity, we can ignore type errors in this loader since it's meant to be used as a standalone script
     pre(node: any) {
-      const preNode = { ...node };
       return {
         type: "element",
         tagName: "div",
         properties: {
-          class: `${preNode.properties?.class || ""} shiki-loader-mockup-code`.trim(),
-          style: `${preNode.properties?.style || ""}`.trim(),
+          class: `${node.properties?.class || ""} shiki-loader-mockup-code`.trim(),
+          style: `${node.properties?.style || ""}`.trim(),
         },
         children: [
           {
@@ -66,7 +65,7 @@ export default function createShikiLoaderTransformer(lang: string) {
               },
             ],
           },
-          preNode,
+          node,
         ],
       };
     },
