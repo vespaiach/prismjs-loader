@@ -26,15 +26,6 @@
   white-space: pre-wrap;
   display: inline-block;
 }
-.shiki-loader-language-label {
-  position: absolute;
-  left: 1rem;
-  top: 0.75rem;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.8;
-}
 .shiki-loader-tooltip {
   position: absolute;
   right: 0.75rem;
@@ -87,6 +78,9 @@
   left: 50%;
   transform: translateX(-50%);
   top: 1.05rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
 }

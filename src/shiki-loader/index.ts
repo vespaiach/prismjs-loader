@@ -17,10 +17,10 @@ async function highlight() {
   const isDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
   const activeTheme = (isDarkMode && darkTheme) || theme;
 
-  for (const codeBlock of Array.from(codeBlocks)) {
+  const highlightTasks = Array.from(codeBlocks).map(async (codeBlock) => {
     const element = codeBlock as HTMLElement;
     const parent = element.parentElement;
-    if (!parent || parent.tagName !== "PRE") continue;
+    if (!parent) return;
 
     // Extract language from class (e.g., language-js)
     const classNames = Array.from(element.classList);
@@ -37,7 +37,7 @@ async function highlight() {
 
     if (lang === "unknown" || !languages.has(lang)) {
       console.warn("Unsupported or unknown language:", lang);
-      continue;
+      return;
     }
 
     try {
@@ -53,18 +53,15 @@ async function highlight() {
       const newPre = tempDiv.firstElementChild as HTMLElement | null;
 
       if (newPre) {
-        const languageClass = langClass || `language-${lang}`;
-
-        if (languageClass) {
-          newPre.classList.add(languageClass);
-        }
-
+        newPre.classList.add(langClass || `language-${lang}`);
         parent.replaceWith(newPre);
       }
     } catch (err) {
       console.error(`Failed to highlight code block with language "${lang}":`, err);
     }
-  }
+  });
+
+  await Promise.allSettled(highlightTasks);
 
   // Attach event listener for copy buttons
   document.querySelectorAll("button[data-target='copy']").forEach((b) => {
